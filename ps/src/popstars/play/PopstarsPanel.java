@@ -15,7 +15,7 @@ import popstars.model.GamePos;
 public class PopstarsPanel extends JPanel implements MouseListener {
     private static final long serialVersionUID = -3703664096288610818L;
 
-    static final PopstarsPanel NULL = new PopstarsPanel(null);
+    static final PopstarsPanel NULL = new PopstarsPanel((GameBoard) null);
 
     static final Color[] COLOURS = new Color[] { Color.BLACK, Color.ORANGE, Color.RED, Color.GREEN, Color.YELLOW,
         Color.BLUE };
@@ -25,8 +25,14 @@ public class PopstarsPanel extends JPanel implements MouseListener {
     private final GameBoard board;
     private final int size = 40;
     private volatile GamePos selected = null;
+    private volatile PopstarsMain main = null;
 
     // --- Constructor and Initialization Methods
+
+    public PopstarsPanel(final PopstarsMain main) {
+        this(main.getGameBoard());
+        this.main = main;
+    }
 
     public PopstarsPanel(final GameBoard gameBoard) {
         super();
@@ -62,6 +68,10 @@ public class PopstarsPanel extends JPanel implements MouseListener {
 
         selected = GamePos.atRowCol(e.getY() / size, e.getX() / size);
         System.out.println(selected);
+
+        if (main != null) {
+            main.tryMove(selected);
+        }
     }
 
     @Override

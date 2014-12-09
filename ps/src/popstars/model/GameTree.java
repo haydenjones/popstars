@@ -3,12 +3,14 @@ package popstars.model;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class GameTree {
+public class GameTree implements Runnable {
 
     // --- Constants and Variables
 
     public static final HashSet<GameBoard> CACHE = new HashSet<GameBoard>();
+    static final AtomicInteger TICKS = new AtomicInteger(0);
 
     private final int height;
     private final int maxHeight;
@@ -36,8 +38,19 @@ public class GameTree {
     // --- Delegate and Convenience Methods
     // --- Miscellaneous Methods
 
+    public void run() {
+        call();
+        System.out.println("");
+        System.out.println(this.getBestChoice());
+    }
+    
     public void call() {
         System.out.print(".");
+        if (TICKS.incrementAndGet() >= 120) {
+            System.out.println("");
+            System.out.print(new java.util.Date() + " ");
+            TICKS.set(0);
+        }
         if (height >= maxHeight) {
             return;
         }

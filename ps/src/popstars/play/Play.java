@@ -11,11 +11,10 @@ import popstars.model.GamePos;
 import popstars.model.GameTree;
 
 public class Play {
+    public static final String[] lines = new String[] { "PRPRGYYPPG", "GYPRRYPPYY", "iPYiGRYRRP", "PiiiiGPRRR",
+        "GiPYRGPGPP", "iRGPPRPGYR", "GYGRGPPiRY", "YiGRiGPRPY", "iiYGPGiGRi", "RYGRRGiPPG" };
 
-    public static void main(final String[] args) {
-        String[] lines = new String[] { "PRPRGYYPPG", "GYPRRYPPYY", "iPYiGRYRRP", "PiiiiGPRRR", "GiPYRGPGPP",
-                "iRGPPRPGYR", "GYGRGPPiRY", "YiGRiGPRPY", "iiYGPGiGRi", "RYGRRGiPPG" };
-
+    public static GameBoard getGameBoard() {
         String[] numLines = new String[lines.length];
         for (int i1 = 0; i1 < lines.length; i1++) {
             String numLine = lines[i1];
@@ -28,6 +27,22 @@ public class Play {
         }
 
         GameBoard game = GameBoard.getInstance(numLines);
+        return game;
+    }
+
+    public static void main2(final String[] args) {
+        String[] numLines = new String[lines.length];
+        for (int i1 = 0; i1 < lines.length; i1++) {
+            String numLine = lines[i1];
+            numLine = numLine.replace('P', '1');
+            numLine = numLine.replace('R', '2');
+            numLine = numLine.replace('G', '3');
+            numLine = numLine.replace('Y', '4');
+            numLine = numLine.replace('i', '5');
+            numLines[i1] = numLine;
+        }
+
+        GameBoard game = getGameBoard();
 
         gui(game);
         // search(game);
@@ -89,7 +104,6 @@ public class Play {
                     System.out.println(game);
                     GameTree gt = new GameTree(game, 6);
                     gt.call();
-                    System.out.println("");
                     System.out.println(gt.getBestChoice());
                 }
             }
