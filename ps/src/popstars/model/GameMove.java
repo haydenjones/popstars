@@ -7,7 +7,7 @@ import java.util.TreeSet;
 public class GameMove {
     // --- Constants and Variables
 
-    private final SortedSet<GamePos> pieces = new TreeSet<GamePos>();
+    private final SortedSet<GamePos> pieces = new TreeSet<>();
 
     // --- Constructor and Initialization Methods
     // --- Core and Helper Methods

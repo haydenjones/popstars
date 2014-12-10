@@ -9,13 +9,13 @@ public class GameTree implements Runnable {
 
     // --- Constants and Variables
 
-    public static final HashSet<GameBoard> CACHE = new HashSet<GameBoard>();
+    public static final HashSet<GameBoard> CACHE = new HashSet<>();
     static final AtomicInteger TICKS = new AtomicInteger(0);
 
     private final int height;
     private final int maxHeight;
     private final GameBoard board;
-    private final List<GameTree> moves = new ArrayList<GameTree>();
+    private final List<GameTree> moves = new ArrayList<>();
     private final GameMove lastMove;
 
     // --- Constructor and Initialization Methods

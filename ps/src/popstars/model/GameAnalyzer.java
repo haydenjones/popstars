@@ -18,29 +18,29 @@ public class GameAnalyzer {
             colAdj = ca;
         }
 
-        public GamePos findMatch(final byte startByte, final GamePos pos, final byte[][] grid) {
+        public GamePos findMatch(final byte startByte, final GamePos pos, final byte[][] colRowGrid) {
             assert (startByte > 0);
-            GamePos newPos = adjustGamePos(pos, grid);
-            if (startByte == getByte(newPos, grid)) {
+            GamePos newPos = adjustGamePos(pos, colRowGrid);
+            if (startByte == getByte(newPos, colRowGrid)) {
                 return newPos;
             }
             return GamePos.NULL;
         }
 
-        private GamePos adjustGamePos(final GamePos pos, final byte[][] grid) {
-            int newRow = pos.getRow() + rowAdj;
-            if (newRow < 0) {
-                return GamePos.NULL;
-            }
-            else if (newRow >= grid.length) {
-                return GamePos.NULL;
-            }
-
+        private GamePos adjustGamePos(final GamePos pos, final byte[][] colRowGrid) {
             int newCol = pos.getCol() + colAdj;
             if (newCol < 0) {
                 return GamePos.NULL;
             }
-            else if (newCol >= grid[newRow].length) {
+            else if (newCol >= colRowGrid.length) {
+                return GamePos.NULL;
+            }
+            
+            int newRow = pos.getRow() + rowAdj;
+            if (newRow < 0) {
+                return GamePos.NULL;
+            }
+            else if (newRow >= colRowGrid[newCol].length) {
                 return GamePos.NULL;
             }
 
@@ -48,25 +48,25 @@ public class GameAnalyzer {
         }
     }
 
-    static byte getByte(final GamePos pos, final byte[][] grid) {
-        if (pos.getRow() < 0) {
+    static byte getByte(final GamePos pos, final byte[][] colRowGrid) {
+        if (pos.getCol() < 0) {
             return -1;
         }
-        else if (pos.getRow() >= grid.length) {
+        else if (pos.getCol() >= colRowGrid.length) {
             return -1;
         }
-        else if (pos.getCol() < 0) {
+        else if (pos.getRow() < 0) {
             return -1;
         }
-        else if (pos.getCol() >= grid[pos.getRow()].length) {
+        else if (pos.getRow() >= colRowGrid[pos.getCol()].length) {
             return -1;
         }
 
-        return grid[pos.getRow()][pos.getCol()];
+        return colRowGrid[pos.getCol()][pos.getRow()];
     }
 
-    static Set<GamePos> findGroup(final GamePos initialPos, final byte[][] grid) {
-        final byte initialByte = getByte(initialPos, grid);
+    static Set<GamePos> findGroup(final GamePos initialPos, final byte[][] colRowGrid) {
+        final byte initialByte = getByte(initialPos, colRowGrid);
         if (initialByte <= 0) {
             return GamePos.EMPTY_SET;
         }
@@ -74,7 +74,7 @@ public class GameAnalyzer {
         GamePos matchPos = GamePos.NULL;
 
         lookForMatch: for (Adj adj : Adj.values()) {
-            GamePos match = adj.findMatch(initialByte, initialPos, grid);
+            GamePos match = adj.findMatch(initialByte, initialPos, colRowGrid);
             if (match != GamePos.NULL) {
                 matchPos = match;
                 break lookForMatch;
@@ -85,16 +85,16 @@ public class GameAnalyzer {
             return GamePos.EMPTY_SET;
         }
 
-        TreeSet<GamePos> pieces = new TreeSet<GamePos>();
+        TreeSet<GamePos> pieces = new TreeSet<>();
         pieces.add(initialPos);
         pieces.add(matchPos);
 
-        return findGroup(initialByte, pieces, grid);
+        return findGroup(initialByte, pieces, colRowGrid);
     }
 
     private static Set<GamePos> findGroup(final byte initialByte, final SortedSet<GamePos> pieces,
             final byte[][] grid) {
-        TreeSet<GamePos> newPositions = new TreeSet<GamePos>();
+        TreeSet<GamePos> newPositions = new TreeSet<>();
 
         for (GamePos current : pieces) {
             for (Adj adj : Adj.values()) {
@@ -120,24 +120,37 @@ public class GameAnalyzer {
     }
 
     public static List<GameMove> findMoves(final GameBoard original) {
-        GameBoard board = original.copy();
-        byte[][] grid = board.getGrid();
+        List<GameMove> moves = new ArrayList<>();
 
-        List<GameMove> moves = new ArrayList<GameMove>();
+        // Create a copy of the game board
+        byte[][] colRowGrid = new byte[original.getColumns().length][];
+        for (int colIndex=0; colIndex<colRowGrid.length; colIndex++) {
+            colRowGrid[colIndex] = original.getColumns()[colIndex].toByteArray();
+        }
+        
+        for (int colIndex=0; colIndex<colRowGrid.length; colIndex++) {
+            for (int rowIndex = 0; rowIndex < colRowGrid[colIndex].length; rowIndex++) {
+                final byte initByte = colRowGrid[colIndex][rowIndex];
+                if (initByte == 0) {
+                    continue;
+                }
+                
+                TreeSet<GamePos> pieces = new TreeSet<>();
+                pieces.add(GamePos.atRowCol(rowIndex, colIndex));
+                Set<GamePos> group = findGroup(initByte, pieces, colRowGrid);
+                
+                // We have a valid group...
 
-        for (int row = 0; row < grid.length; row++) {
-            for (int col = 0; col < grid[row].length; col++) {
-                Set<GamePos> pieces = findGroup(GamePos.atRowCol(row, col), grid);
-                if (!pieces.isEmpty()) {
-                    GameMove gm = new GameMove(pieces);
-                    for (GamePos gp : gm.getPieces()) {
-                        grid[gp.getRow()][gp.getCol()] = 0;
+                if (group.size() > 1) {
+                    GameMove move = new GameMove(group);
+                    for (GamePos pos : group) {
+                        colRowGrid[pos.getCol()][pos.getRow()] = 0;
                     }
-                    moves.add(gm);
+                    moves.add(move);
                 }
             }
         }
-
+        
         return moves;
     }
 

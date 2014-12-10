@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class GamePos implements Comparable<GamePos> {
-    static final List<GamePos> CACHE = new ArrayList<GamePos>();
+    static final List<GamePos> CACHE = new ArrayList<>();
     static final AtomicLong COUNTER = new AtomicLong(0);
 
     public static GamePos atRowCol(final int r, final int c) {
@@ -83,8 +83,9 @@ public class GamePos implements Comparable<GamePos> {
 
     @Override
     public String toString() {
-        return "(" + row + ", " + col + ")";
+        return "(R: " + row + ", C: " + col + ")";
     }
+    
     // --- Delegate and Convenience Methods
     // --- Miscellaneous Methods
 }

@@ -1,50 +1,57 @@
 package popstars.model;
 
-import java.util.TreeSet;
-
-public class GameBoard implements Cloneable {
+public class GameBoard {
 
     // --- Constants and Variables
 
-    static int getPoints(final int numberOfBlocks) {
-        if (numberOfBlocks < 2) {
-            return 0;
-        }
-
+    static final int[] PIECES_TO_POINTS = new int[101];
+    static {
         int plus = 5;
         int total = 5;
 
-        for (int i1 = 1; i1 < numberOfBlocks; i1++) {
+        for (int i1 = 2; i1 < 101; i1++) {
             plus += 10;
             total += plus;
+            PIECES_TO_POINTS[i1] = total;
         }
-
-        return total;
+    }
+    
+    static int getPoints(final int numberOfBlocks) {
+        return PIECES_TO_POINTS[numberOfBlocks];
     }
 
     public static GameBoard getInstance(final String... lines) {
-        byte[][] grid = new byte[lines.length][];
-        int rowCount = 0;
-        for (String l : lines) {
-            char[] chars = l.toCharArray();
-            byte[] row = new byte[chars.length];
-            grid[rowCount] = row;
-            for (int i1 = 0; i1 < chars.length; i1++) {
-                row[i1] = Byte.parseByte(chars[i1] + "");
-            }
-            rowCount++;
+        // Assuming that our grid is square...
+        
+        byte[][] columnBytes = new byte[lines.length][];
+        for (int i1=0; i1<columnBytes.length; i1++) {
+            columnBytes[i1] = new byte[lines.length];
         }
-        return new GameBoard(grid, 0);
+        
+        int row=0;
+        for (String line : lines) {
+            char[] chars = line.toCharArray();
+            for (int col=0; col<chars.length; col++) {
+                columnBytes[col][row] = Byte.parseByte("" + chars[col]);
+            }
+            row++;
+        }
+        
+        GameColumn[] columns = new GameColumn[lines.length];
+        for (int i1=0; i1<columnBytes.length; i1++) {
+            columns[i1] = GameColumn.getInstance(columnBytes[i1]);
+        }
+        return new GameBoard(columns, 0);
     }
 
     private final int score;
-    private final byte[][] grid;
+    private final GameColumn[] columns;
 
     // --- Constructor and Initialization Methods
 
-    private GameBoard(final byte[][] byteGrid, final int newScore) {
+    private GameBoard(final GameColumn[] newColumns, final int newScore) {
         super();
-        grid = byteGrid;
+        columns = newColumns;
         score = newScore;
     }
 
@@ -55,66 +62,49 @@ public class GameBoard implements Cloneable {
         return score;
     }
 
-    public byte[][] getGrid() {
-        return grid;
-    }
-
     // --- Delegate and Convenience Methods
 
     public GameBoard performMove(final GameMove move) {
-        GameBoard newBoard = this.copy();
-        byte[][] grid = newBoard.getGrid();
-
-        // Remove the pieces...
-        TreeSet<Integer> columns = new TreeSet<Integer>();
-        for (GamePos pos : move.getPieces()) {
-            grid[pos.getRow()][pos.getCol()] = 0;
-            columns.add(pos.getCol());
+        if (move.getPieces().isEmpty()) {
+            return this;
         }
 
-        // Have the columns sink
-        for (Integer column : columns) {
-            doneNow: while (true) {
-                boolean lookAgain = true;
-                again: while (lookAgain) {
-                    lookAgain = false;
-
-                    for (int row = grid.length - 1; row > 0; row--) {
-                        if ((grid[row][column] == 0) && (grid[row - 1][column] > 0)) {
-                            grid[row][column] = grid[row - 1][column];
-                            grid[row - 1][column] = 0;
-                            lookAgain = true;
-                            break again;
-                        }
-                    }
-                }
-
-                if (!lookAgain) {
-                    break doneNow;
+        final int newScore = score + getPoints(move.getPieces().size());
+        
+        // Create a copy of the GameColumns
+        GameColumn[] newColumns = new GameColumn[columns.length];
+        System.arraycopy(columns, 0, newColumns, 0, columns.length);
+        
+        boolean squishLeft = false;
+        for (GamePos pos : move.getPieces()) {
+            GameColumn col = newColumns[pos.getCol()];
+            col = col.removePiece(pos.getRow());
+            squishLeft = squishLeft || (col == GameColumn.EMPTY_COLUMN);
+            newColumns[pos.getCol()] = col;
+        }
+        
+        // Now squish the columns to the left
+        if (squishLeft) {
+            GameColumn[] squishedColumns = new GameColumn[columns.length];
+            for (int i1=0; i1<squishedColumns.length; i1++) {
+                squishedColumns[i1] = GameColumn.EMPTY_COLUMN;
+            }
+            
+            int index = 0;
+            for (GameColumn gc : newColumns) {
+                if (gc != GameColumn.EMPTY_COLUMN) {
+                    squishedColumns[index] = gc;
+                    index++;
                 }
             }
+            
+            newColumns = squishedColumns;
         }
-
-        // Have the columns shifted LEFT
-
-        int newScore = score + getPoints(move.getPieces().size());
-
-        return new GameBoard(grid, newScore);
+        
+        return new GameBoard(newColumns, newScore);
     }
 
     // --- Miscellaneous Methods
-
-    String toString(final byte[][] grid) {
-        StringBuilder sb = new StringBuilder();
-        for (byte[] bytes : grid) {
-            for (byte b : bytes) {
-                int i = 0 + b;
-                sb.append(i);
-            }
-            sb.append("\n");
-        }
-        return sb.toString();
-    }
 
     @Override
     public boolean equals(final Object o) {
@@ -138,23 +128,14 @@ public class GameBoard implements Cloneable {
         StringBuilder sb = new StringBuilder();
         sb.append(this.score);
         sb.append("\n");
-        for (byte[] bytes : grid) {
-            for (byte b : bytes) {
-                int i = 0 + b;
-                sb.append(i);
-            }
+        for (GameColumn col : columns) {
+            sb.append(col);
             sb.append("\n");
         }
         return sb.toString();
     }
 
-    public GameBoard copy() {
-        int newScore = this.getScore();
-        byte[][] newGrid = new byte[this.grid.length][];
-        for (int i1=0; i1<newGrid.length; i1++) {
-            newGrid[i1] = new byte[grid[i1].length];
-            System.arraycopy(grid[i1], 0, newGrid[i1], 0, grid[i1].length);
-        }
-        return new GameBoard(newGrid, newScore);
+    public GameColumn[] getColumns() {
+        return columns;
     }
 }

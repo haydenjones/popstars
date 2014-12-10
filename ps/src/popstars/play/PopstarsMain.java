@@ -39,6 +39,7 @@ public class PopstarsMain implements Runnable {
     public void run() {
         pjf = new PopstarsJFrame(this);
         pjf.init();
+        pjf.refreshBoard();
         pjf.setVisible(true);
     }
     // --- Getter and Setter Methods
@@ -50,6 +51,7 @@ public class PopstarsMain implements Runnable {
     }
 
     public void tryMove(final GamePos selected) {
+        System.out.println("tryMove " + selected);
         GameMove found = null;
 
         List<GameMove> moves = GameAnalyzer.findMoves(board);

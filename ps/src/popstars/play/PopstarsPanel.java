@@ -10,6 +10,7 @@ import java.awt.event.MouseListener;
 import javax.swing.JPanel;
 
 import popstars.model.GameBoard;
+import popstars.model.GameColumn;
 import popstars.model.GamePos;
 
 public class PopstarsPanel extends JPanel implements MouseListener {
@@ -17,8 +18,8 @@ public class PopstarsPanel extends JPanel implements MouseListener {
 
     static final PopstarsPanel NULL = new PopstarsPanel((GameBoard) null);
 
-    static final Color[] COLOURS = new Color[] { Color.BLACK, Color.ORANGE, Color.RED, Color.GREEN, Color.YELLOW,
-        Color.BLUE };
+    static final Color[] COLOURS = new Color[] { Color.BLACK, new Color(8388736), Color.RED, Color.GREEN, Color.YELLOW,
+        Color.PINK };
 
     // --- Constants and Variables
 
@@ -49,11 +50,13 @@ public class PopstarsPanel extends JPanel implements MouseListener {
     @Override
     public void paint(final Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
-        byte[][] grid = board.getGrid();
+        GameColumn[] columns = board.getColumns();
 
-        for (int row = 0; row < grid.length; row++) {
-            for (int col = 0; col < grid[row].length; col++) {
-                int coloursIndex = grid[row][col];
+        for (int col = 0; col < columns.length; col++) {
+            GameColumn column = columns[col];
+            byte[] grid = column.toByteArray();
+            for (int row = 0; row < grid.length; row++) {
+                int coloursIndex = grid[row];
                 g2d.setPaint(COLOURS[coloursIndex]);
                 g2d.fillRect(col * size + 1, row * size + 1, size - 2, size - 2);
             }
@@ -67,7 +70,7 @@ public class PopstarsPanel extends JPanel implements MouseListener {
         }
 
         selected = GamePos.atRowCol(e.getY() / size, e.getX() / size);
-        System.out.println(selected);
+        System.out.println(selected + " " + main);
 
         if (main != null) {
             main.tryMove(selected);
