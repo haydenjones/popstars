@@ -11,8 +11,17 @@ import popstars.model.GamePos;
 import popstars.model.GameTree;
 
 public class Play {
-    public static final String[] lines = new String[] { "PRPRGYYPPG", "GYPRRYPPYY", "iPYiGRYRRP", "PiiiiGPRRR",
-        "GiPYRGPGPP", "iRGPPRPGYR", "GYGRGPPiRY", "YiGRiGPRPY", "iiYGPGiGRi", "RYGRRGiPPG" };
+    public static final String[] lines = new String[] { "GYGPRRRYYY", 
+        /* */
+        "PYYKPKPKYK", 
+        "PYRPPPRRYK", //
+        "GGKRRKYPPY", //
+        "RRYGYGRKKR", // 
+        "KYRPPKRGPP", // 
+        "GKYRGGRKGP", // 
+        "KGYGPKRYKK", // 
+        "PYGYKKKRPG", // 
+        "YGRKYYGYGP" };
 
     public static GameBoard getGameBoard() {
         String[] numLines = new String[lines.length];
@@ -22,7 +31,7 @@ public class Play {
             numLine = numLine.replace('R', '2');
             numLine = numLine.replace('G', '3');
             numLine = numLine.replace('Y', '4');
-            numLine = numLine.replace('i', '5');
+            numLine = numLine.replace('K', '5');
             numLines[i1] = numLine;
         }
 
